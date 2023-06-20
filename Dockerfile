@@ -9,6 +9,7 @@ RUN apt-get update --fix-missing -y && \
     apt-get install -y \
 	build-essential \
 #	ncbi-blast+ \
+	bc \
 	zlib1g-dev \
         wget \
 	nano \
@@ -46,6 +47,7 @@ WORKDIR /SPOT-RNA-2D
 # install dependencies
 RUN mamba install -y -c bioconda blast=2.14.0
 RUN mamba install -y -c anaconda pandas numpy pathlib
+RUN mamba install -y -c conda-forge tqdm
 #RUN mamba install -y -c conda-forge tqdm tensorflow==1.15.0
 
 # install other tools

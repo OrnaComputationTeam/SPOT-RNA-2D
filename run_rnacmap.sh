@@ -3,7 +3,8 @@
 # Start measuring the time
 start=$(date +%s.%N)
 
-n_cores="$(nproc --all)"
+#n_cores="$(nproc --all)"
+n_cores=$2
 
 start=`date +%s`
 
@@ -15,11 +16,14 @@ program_dir=$(dirname $(readlink -f $0))
 #path_blastn_database=/home/jaswinder/Documents/project4/database/nt 
 #path_infernal_database=/home/jaswinder/Documents/project4/database/nt
 
-path_blastn_database=/home/ubuntu/scratch/s3/ornatx-scratch/ramin_spotrna2_blast_transfer/SPOT-RNA-2D/nt_database/nt
-path_infernal_database=/home/ubuntu/scratch/s3/ornatx-scratch/ramin_spotrna2_blast_transfer/SPOT-RNA-2D/nt_database/nt
+#path_blastn_database=/home/ubuntu/fsx/ornatx-scratch/ramin_spotrna2_blast_transfer/SPOT-RNA-2D/nt_database/nt
+#path_infernal_database=/home/ubuntu/fsx/ornatx-scratch/ramin_spotrna2_blast_transfer/SPOT-RNA-2D/nt_database/nt
 
-#path_blastn_database=$program_dir/nt_database/nt      				# set path to the formatted NCBI's database file without extension 
-#path_infernal_database=$program_dir/nt_database/nt					# set path to the NCBI's database database file
+#path_blastn_database=/home/ubuntu/scratch/s3/ornatx-scratch/ramin_spotrna2_blast_transfer/SPOT-RNA-2D/nt_database/nt
+#path_infernal_database=/home/ubuntu/scratch/s3/ornatx-scratch/ramin_spotrna2_blast_transfer/SPOT-RNA-2D/nt_database/nt
+
+path_blastn_database=$program_dir/nt_database/nt      				# set path to the formatted NCBI's database file without extension 
+path_infernal_database=$program_dir/nt_database/nt					# set path to the NCBI's database database file
 
 mkdir -p $input_dir/${seq_id}_features #&& mkdir -p $input_dir/${seq_id}_outputs
 echo ">"$seq_id > $input_dir/${seq_id}_features/$seq_id.fasta
