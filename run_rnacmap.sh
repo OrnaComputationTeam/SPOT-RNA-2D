@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Start measuring the time
-start=$(date +%s.%N)
+# usage: ./run_rnacmap.sh input_features/mires_IRC1_191 8
+# run_rnacmap.sh gets two inputes: 1. the sequence file 2. number of cores to be used
 
 #n_cores="$(nproc --all)"
 n_cores=$2
@@ -178,18 +178,10 @@ else
         echo "==========================================================================================================================="
         echo ""
         blastn -db $path_blastn_database -query $feature_dir/$seq_id.fasta -out $feature_dir/$seq_id.bla -evalue 0.001 -num_descriptions 1 -num_threads $n_cores -line_length 1000 -num_alignments 50000
-	# End measuring the time
-	end=$(date +%s.%N)
 
-	# Calculate the elapsed time
-	runtime=$(echo "$end - $start" | bc)
-
-	# Print the elapsed time in minutes
-	minutes=$(echo "scale=2; $runtime / 60" | bc)
-
-	echo "Elapsed time:"
-	echo "$minutes"
-	echo "*********************************************"
+	end=`date +%s`
+	runtime=$((end-start))
+	echo -e "\ncomputation time from start to the end of blastn = "$runtime" seconds"
     fi
 			
 	if [ $? -eq 0 ]; then
@@ -303,6 +295,10 @@ else
     echo ""
 	cmcalibrate $feature_dir/$seq_id.cm
 
+        end=`date +%s`
+        runtime=$((end-start))
+        echo -e "\ncomputation time from start to the end of cmcalibrate = "$runtime" seconds"
+
 	if [ $? -eq 0 ]; then
 	    echo ""
 	    echo "==========================================================="
@@ -327,6 +323,10 @@ else
     echo "======================================================================================================================"
     echo ""
 	cmsearch -o $feature_dir/$seq_id.out -A $feature_dir/$seq_id.msa --incE 10.0 --cpu $n_cores $feature_dir/$seq_id.cm $path_infernal_database
+
+        end=`date +%s`
+        runtime=$((end-start))
+        echo -e "\ncomputation time from start to the end of cmsearch = "$runtime" seconds"
 
 	if [ $? -eq 0 ]; then
 	    echo ""
@@ -483,8 +483,5 @@ fi
 cp $input_dir/${seq_id}_features/$seq_id.fasta $input_dir/${seq_id}_features/$seq_id
 
 end=`date +%s`
-
 runtime=$((end-start))
-
-echo -e "\ncomputation time = "$runtime" seconds"
-
+echo -e "\ncomputation time from start to the end = "$runtime" seconds"
