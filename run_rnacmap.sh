@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# usage: ./run_rnacmap.sh input_features/mires_IRC1_191 8
+# run_rnacmap.sh gets two inputes: 1. the sequence file 2. number of cores to be used
+
+#n_cores="$(nproc --all)"
+n_cores=$2
+
 start=`date +%s`
 
 input="$(cd "$(dirname "$1")"; pwd)/$(basename "$1")"
@@ -7,11 +13,17 @@ input_dir=$(dirname $input)
 seq_id=$(basename $(basename $input) | cut -d. -f1)
 program_dir=$(dirname $(readlink -f $0))
 
-path_blastn_database=/home/jaswinder/Documents/project4/database/nt 
-path_infernal_database=/home/jaswinder/Documents/project4/database/nt
+#path_blastn_database=/home/jaswinder/Documents/project4/database/nt 
+#path_infernal_database=/home/jaswinder/Documents/project4/database/nt
 
-#path_blastn_database=$program_dir/nt_database/nt      				# set path to the formatted NCBI's database file without extension 
-#path_infernal_database=$program_dir/nt_database/nt					# set path to the NCBI's database database file
+#path_blastn_database=/home/ubuntu/fsx/ornatx-scratch/ramin_spotrna2_blast_transfer/SPOT-RNA-2D/nt_database/nt
+#path_infernal_database=/home/ubuntu/fsx/ornatx-scratch/ramin_spotrna2_blast_transfer/SPOT-RNA-2D/nt_database/nt
+
+#path_blastn_database=/home/ubuntu/scratch/s3/ornatx-scratch/ramin_spotrna2_blast_transfer/SPOT-RNA-2D/nt_database/nt
+#path_infernal_database=/home/ubuntu/scratch/s3/ornatx-scratch/ramin_spotrna2_blast_transfer/SPOT-RNA-2D/nt_database/nt
+
+path_blastn_database=$program_dir/nt_database/nt      				# set path to the formatted NCBI's database file without extension 
+path_infernal_database=$program_dir/nt_database/nt					# set path to the NCBI's database database file
 
 mkdir -p $input_dir/${seq_id}_features #&& mkdir -p $input_dir/${seq_id}_outputs
 echo ">"$seq_id > $input_dir/${seq_id}_features/$seq_id.fasta
@@ -165,7 +177,11 @@ else
         echo "      May take 5 mins to few hours depending on sequence length and no. of homologous sequences in database.               "
         echo "==========================================================================================================================="
         echo ""
-        blastn -db $path_blastn_database -query $feature_dir/$seq_id.fasta -out $feature_dir/$seq_id.bla -evalue 0.001 -num_descriptions 1 -num_threads 8 -line_length 1000 -num_alignments 50000
+        blastn -db $path_blastn_database -query $feature_dir/$seq_id.fasta -out $feature_dir/$seq_id.bla -evalue 0.001 -num_descriptions 1 -num_threads $n_cores -line_length 1000 -num_alignments 50000
+
+	end=`date +%s`
+	runtime=$((end-start))
+	echo -e "\ncomputation time from start to the end of blastn = "$runtime" seconds"
     fi
 			
 	if [ $? -eq 0 ]; then
@@ -279,6 +295,10 @@ else
     echo ""
 	cmcalibrate $feature_dir/$seq_id.cm
 
+        end=`date +%s`
+        runtime=$((end-start))
+        echo -e "\ncomputation time from start to the end of cmcalibrate = "$runtime" seconds"
+
 	if [ $? -eq 0 ]; then
 	    echo ""
 	    echo "==========================================================="
@@ -302,7 +322,11 @@ else
     echo "                 May take 15 mins to few hours for this step.                                                         "
     echo "======================================================================================================================"
     echo ""
-	cmsearch -o $feature_dir/$seq_id.out -A $feature_dir/$seq_id.msa --cpu 24 --incE 10.0 $feature_dir/$seq_id.cm $path_infernal_database
+	cmsearch -o $feature_dir/$seq_id.out -A $feature_dir/$seq_id.msa --incE 10.0 --cpu $n_cores $feature_dir/$seq_id.cm $path_infernal_database
+
+        end=`date +%s`
+        runtime=$((end-start))
+        echo -e "\ncomputation time from start to the end of cmsearch = "$runtime" seconds"
 
 	if [ $? -eq 0 ]; then
 	    echo ""
@@ -437,7 +461,7 @@ else
 	echo "          Running PLMC for DCA features.                                 "
 	echo "============================================================================"
 	echo ""
-	$program_dir/plmc/bin/plmc -c $feature_dir/$seq_id.dca -a -.ACGUNX -le 20 -lh 0.01 -m 50 $feature_dir/$seq_id.a2m &> $feature_dir/$seq_id.log_plmc
+	$program_dir/plmc/bin/plmc -c $feature_dir/$seq_id.dca -a -.ACGUNX -le 20 -lh 0.01 -m 50 -n $n_cores $feature_dir/$seq_id.a2m &> $feature_dir/$seq_id.log_plmc
 	if [ $? -eq 0 ]; then
 		echo ""
 		echo "===================================================="
@@ -459,8 +483,5 @@ fi
 cp $input_dir/${seq_id}_features/$seq_id.fasta $input_dir/${seq_id}_features/$seq_id
 
 end=`date +%s`
-
 runtime=$((end-start))
-
-echo -e "\ncomputation time = "$runtime" seconds"
-
+echo -e "\ncomputation time from start to the end = "$runtime" seconds"
